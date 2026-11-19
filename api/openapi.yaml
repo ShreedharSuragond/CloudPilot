@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: CloudPilot API
+  version: 0.1.0
+  description: Initial health and readiness contract for the CloudPilot modular monolith.
+servers:
+  - url: http://localhost:8080
+paths:
+  /healthz:
+    get:
+      operationId: getHealth
+      summary: Check whether the API process is running
+      responses:
+        '200':
+          description: API process is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /auth/config:
+    get:
+      operationId: getAuthConfig
+      summary: Check whether OIDC is configured
+      responses:
+        '200':
+          description: Provider configuration status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthConfig'
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      summary: Get the authenticated user and memberships
+      responses:
+        '200':
+          description: Authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMe'
+        '401':
+          description: Authentication required
+  /auth/login:
+    get:
+      operationId: startLogin
+      summary: Start OIDC Authorization Code login
+      parameters:
+        - name: redirect
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the configured identity provider
+        '503':
+          description: OIDC is not configured
+  /auth/register:
+    get:
+      operationId: startRegistration
+      summary: Start OIDC registration
+      parameters:
+        - name: redirect
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the configured identity provider
+        '503':
+          description: OIDC is not configured
+  /auth/callback:
+    get:
+      operationId: completeOidcLogin
+      summary: Complete the OIDC Authorization Code callback
+      parameters:
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Session created and redirect to the requested local route
+        '400':
+          description: Invalid or expired login state
+        '401':
+          description: Invalid authorization result
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: End the local CloudPilot session
+      responses:
+        '200':
+          description: Session ended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+  /auth/dev-login:
+    post:
+      operationId: devLogin
+      summary: Development-only mock login for local testing
+      responses:
+        '200':
+          description: Session created and cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMe'
+        '403':
+          description: Development login is disabled in this environment
+  /readyz:
+    get:
+      operationId: getReadiness
+      summary: Check whether required dependencies are ready
+      responses:
+        '200':
+          description: API and database are ready
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: API dependencies are unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+components:
+  schemas:
+    AuthConfig:
+      type: object
+      required: [enabled, clientConfigured]
+      properties:
+        enabled:
+          type: boolean
+        clientConfigured:
+          type: boolean
+        devAuthEnabled:
+          type: boolean
+    AuthMe:
+      type: object
+      required: [user, memberships]
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/Membership'
+    AuthUser:
+      type: object
+      required: [id, email, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        name:
+          type: string
+    Membership:
+      type: object
+      required: [organisationId, organisationName, role]
+      properties:
+        organisationId:
+          type: string
+          format: uuid
+        organisationName:
+          type: string
+        role:
+          type: string
+    Status:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          examples: [ok]

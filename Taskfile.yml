@@ -1,0 +1,138 @@
+version: '3'
+
+set: [pipefail]
+
+vars:
+  COMPOSE_FILE: deployments/docker/docker-compose.yml
+  ENV_FILE: .env
+
+  # Windows Git Bash: Docker Desktop and Go tools must be available on PATH.
+
+tasks:
+  setup:
+    desc: Create local environment file and prepare required directories
+    cmds:
+      - |
+        if [ ! -f "{{.ENV_FILE}}" ]; then
+          cp .env.example "{{.ENV_FILE}}"
+          echo "Created {{.ENV_FILE}}. Update POSTGRES_PASSWORD before starting Docker."
+        else
+          echo "{{.ENV_FILE}} already exists"
+        fi
+
+  docker:up:
+    desc: Build and start the complete local stack
+    deps: [setup]
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d
+
+  docker:down:
+    desc: Stop the complete local stack
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" down
+
+  docker:reset:
+    desc: Stop containers and remove the PostgreSQL volume
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" down -v
+
+  docker:ps:
+    desc: Show running CloudPilot containers
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" ps
+
+  docker:logs:
+    desc: Follow logs for all or one service
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" logs -f {{.CLI_ARGS}}
+
+  docker:api:
+    desc: Rebuild and restart only the API service
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d api
+
+  docker:frontend:
+    desc: Rebuild and restart only the frontend service
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d frontend
+
+  docker:worker:
+    desc: Rebuild and restart only the worker service
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d worker
+
+  frontend:install:
+    desc: Install frontend dependencies
+    dir: frontend
+    cmds:
+      - npm ci
+
+  frontend:dev:
+    desc: Run the Vite development server
+    dir: frontend
+    cmds:
+      - npm run dev
+
+  frontend:types:
+    desc: Generate frontend TypeScript types from OpenAPI
+    dir: frontend
+    cmds:
+      - npm run api:types
+
+  frontend:lint:
+    desc: Lint the frontend
+    dir: frontend
+    cmds:
+      - npm run lint
+
+  frontend:build:
+    desc: Build the frontend
+    dir: frontend
+    cmds:
+      - npm run build
+
+  backend:test:
+    desc: Run Go tests and vet checks
+    dir: backend
+    cmds:
+      - gofmt -w ./cmd ./internal
+      - go mod tidy
+      - go test ./...
+      - go vet ./...
+
+  backend:run:
+    desc: Run the API outside Docker
+    dir: backend
+    cmds:
+      - go run ./cmd/api
+
+  worker:run:
+    desc: Run the worker outside Docker
+    dir: backend
+    cmds:
+      - go run ./cmd/worker
+
+  migrate:
+    desc: Start PostgreSQL and apply embedded migrations during API startup
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up -d postgres
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d api
+
+  compose:config:
+    desc: Validate Docker Compose configuration
+    cmds:
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" config --quiet
+
+  check:
+    desc: Run focused project validation
+    cmds:
+      - task: frontend:types
+      - task: frontend:lint
+      - task: frontend:build
+      - task: backend:test
+      - task: compose:config
+
+  default:
+    desc: Show available project tasks
+    cmds:
+      - task --list
