@@ -12,4 +12,7 @@ export default defineConfig({
       '@': path.resolve(fileURLToPath(new URL('.', import.meta.url)), './src'),
     },
   },
+  server: {
+    port: 5173,
+  },
 })

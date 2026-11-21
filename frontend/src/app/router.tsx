@@ -1,9 +1,8 @@
-import { createRootRoute, createRoute, createRouter, Navigate, Outlet } from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, Outlet } from '@tanstack/react-router'
 import { RootIndexRoute } from '../routes/index'
 import { DashboardRoute } from '../routes/dashboard'
 import { InventoryRoute } from '../routes/inventory'
 import { LoginRoute } from '../routes/login'
-import { AuthCallbackRoute } from '../routes/auth-callback'
 import { TeamsRoute } from '../routes/teams'
 import { PoliciesRoute } from '../routes/policies'
 import { CostsRoute } from '../routes/costs'
@@ -35,18 +34,6 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginRoute,
-})
-
-const registerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/register',
-  component: () => <Navigate to="/login" replace />,
-})
-
-const authCallbackRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/auth/callback',
-  component: AuthCallbackRoute,
 })
 
 const teamsRoute = createRoute({
@@ -90,8 +77,6 @@ const routeTree = rootRoute.addChildren([
   dashboardRoute,
   inventoryRoute,
   loginRoute,
-  registerRoute,
-  authCallbackRoute,
   teamsRoute,
   policiesRoute,
   costsRoute,

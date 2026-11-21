@@ -63,3 +63,37 @@ func TestStartLoginRequiresOIDCConfig(t *testing.T) {
 		t.Fatalf("expected 503 Service Unavailable when unconfigured, got %d", rec.Code)
 	}
 }
+
+func TestResolveRedirect(t *testing.T) {
+	origins := []string{"https://app.cloudpilot.com", "http://localhost:5173"}
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"empty string defaults to frontend dashboard", "", "https://app.cloudpilot.com/dashboard"},
+		{"relative path prefixes with frontend origin", "/inventory", "https://app.cloudpilot.com/inventory"},
+		{"relative settings path", "/settings", "https://app.cloudpilot.com/settings"},
+		{"untrusted external url blocked", "https://evil.com/phish", "https://app.cloudpilot.com/dashboard"},
+		{"protocol relative blocked", "//evil.com", "https://app.cloudpilot.com/dashboard"},
+		{"backslash protocol relative blocked", "/\\evil.com", "https://app.cloudpilot.com/dashboard"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := resolveRedirect(tt.input, origins)
+			if got != tt.expected {
+				t.Errorf("resolveRedirect(%q) = %q, expected %q", tt.input, got, tt.expected)
+			}
+		})
+	}
+
+	// Test fallback when origins list is empty
+	t.Run("empty origins returns relative path", func(t *testing.T) {
+		got := resolveRedirect("/dashboard", nil)
+		if got != "/dashboard" {
+			t.Errorf("resolveRedirect('/dashboard', nil) = %q, expected '/dashboard'", got)
+		}
+	})
+}

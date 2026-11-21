@@ -40,8 +40,7 @@ export function LoginRoute() {
   }
 
   function startLogin() {
-    const returnUrl = redirectTo.startsWith('http') ? redirectTo : `${window.location.origin}${redirectTo}`
-    window.location.assign(`${API_BASE_URL}/auth/login?redirect=${encodeURIComponent(returnUrl)}`)
+    window.location.assign(`${API_BASE_URL}/auth/login?redirect=${encodeURIComponent(redirectTo)}`)
   }
 
   return (

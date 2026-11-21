@@ -1,0 +1,13 @@
+{
+    auto_https off
+    admin off
+}
+
+:80 {
+    root * /usr/share/caddy
+    encode gzip zstd
+
+    # Serve static assets and fallback to index.html for client-side routing
+    try_files {path} /index.html
+    file_server
+}

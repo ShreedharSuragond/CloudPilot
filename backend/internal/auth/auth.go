@@ -536,19 +536,19 @@ func (h *Handler) writeCookie(w http.ResponseWriter, r *http.Request, name, valu
 	})
 }
 
-func resolveRedirect(rawTarget string, allowedOrigins []string) string {
-	if strings.HasPrefix(rawTarget, "/") && !strings.HasPrefix(rawTarget, "//") && !strings.HasPrefix(rawTarget, "/\\") {
-		return rawTarget
-	}
-	for _, origin := range allowedOrigins {
-		if rawTarget == origin || strings.HasPrefix(rawTarget, origin+"/") {
-			return rawTarget
-		}
-	}
+// resolveRedirect safely returns the frontend destination URL, preventing open-redirect attacks.
+func resolveRedirect(target string, allowedOrigins []string) string {
+	base := ""
 	if len(allowedOrigins) > 0 {
-		return allowedOrigins[0] + "/dashboard"
+		base = allowedOrigins[0]
 	}
-	return "/"
+
+	// Only allow safe relative paths (e.g. "/dashboard", "/inventory")
+	if strings.HasPrefix(target, "/") && !strings.HasPrefix(target, "//") && !strings.HasPrefix(target, "/\\") {
+		return base + target
+	}
+
+	return base + "/dashboard"
 }
 
 func (h *Handler) oauthConfig(provider *oidc.Provider) oauth2.Config {

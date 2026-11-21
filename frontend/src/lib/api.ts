@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace(/\/+$/, '')
+export const API_BASE_URL: string = import.meta.env.VITE_API_URL
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)

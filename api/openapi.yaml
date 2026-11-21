@@ -4,7 +4,7 @@ info:
   version: 0.1.0
   description: Initial health and readiness contract for the CloudPilot modular monolith.
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8080/cloudpilot
 paths:
   /healthz:
     get:
@@ -102,19 +102,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /readyz:
+  /healthz:
     get:
-      operationId: getReadiness
-      summary: Check whether required dependencies are ready
+      operationId: getHealth
+      summary: Comprehensive health probe with database telemetry, uptime, and system status
       responses:
         '200':
-          description: API and database are ready
+          description: API is operational
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
         '503':
-          description: API dependencies are unavailable
+          description: Critical dependencies (e.g. database) are unavailable
           content:
             application/json:
               schema:
@@ -829,11 +829,41 @@ components:
           type: string
     Health:
       type: object
-      required: [status]
+      required: [status, timestamp, uptime, environment, version, database]
       properties:
         status:
           type: string
-          examples: [ok]
+          examples: [ok, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        uptime:
+          type: string
+          examples: [12m34s]
+        environment:
+          type: string
+          examples: [development, production]
+        version:
+          type: string
+          examples: ["1.0.0"]
+        database:
+          type: object
+          required: [status]
+          properties:
+            status:
+              type: string
+              examples: [connected, unavailable, not_configured]
+            latency:
+              type: string
+              examples: [1.25ms]
+            message:
+              type: string
+            total_connections:
+              type: integer
+            idle_connections:
+              type: integer
+            active_connections:
+              type: integer
     Organisation:
       type: object
       required: [id, name, role, createdAt]
