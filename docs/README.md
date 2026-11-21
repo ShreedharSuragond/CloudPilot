@@ -17,9 +17,9 @@ flowchart TD
     FinOps["4. Discovery & FinOps Engine<br/>(docs/discovery-and-finops.md)"]
     Sec["5. Security & Policy Guardrails<br/>(docs/security-and-policies.md)"]
     AI["6. AI Workloads & Copilot<br/>(docs/ai-workloads-and-copilot.md)"]
-    Ops["7. Deployment & Operations<br/>(docs/deployment-and-operations.md)"]
+    Docker["7. Docker Deployment<br/>(deployments/docker/README.md)"]
 
-    Index --> Arch & DB & API & FinOps & Sec & AI & Ops
+    Index --> Arch & DB & API & FinOps & Sec & AI & Docker
 ```
 
 ---
@@ -34,4 +34,4 @@ flowchart TD
 | **[Discovery & FinOps Engine](discovery-and-finops.md)** | AWS, GCP, and Azure discovery scanners, sync lifecycle, 30-day cost timeseries, and budget tracking. |
 | **[Security & Policy Guardrails](security-and-policies.md)** | CIS Benchmarks, SOC 2, HIPAA, AI Safety rules, finding resolution lifecycle, and OIDC cookie auth. |
 | **[AI Workloads & Copilot](ai-workloads-and-copilot.md)** | Bedrock, SageMaker, Vertex AI, Azure OpenAI telemetry, guardrails evaluation, and pluggable AI Copilot. |
-| **[Deployment & Operations](deployment-and-operations.md)** | Docker Compose configuration, production environment variables, local setup, and health checks. |
+| **[Docker Deployment Guide](../deployments/docker/README.md)** | Multi-container Docker Compose orchestration, Caddy gateway configuration, and container operations. |

@@ -7,7 +7,14 @@
     root * /usr/share/caddy
     encode gzip zstd
 
-    # Serve static assets and fallback to index.html for client-side routing
-    try_files {path} /index.html
-    file_server
+    # CloudPilot Backend API (preserves /cloudpilot prefix)
+    handle /cloudpilot/* {
+        reverse_proxy http://api:8080
+    }
+
+    # CloudPilot Frontend UI (serves React app & client-side routing)
+    handle {
+        try_files {path} /index.html
+        file_server
+    }
 }

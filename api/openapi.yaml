@@ -5,6 +5,7 @@ info:
   description: Initial health and readiness contract for the CloudPilot modular monolith.
 servers:
   - url: http://localhost:8080/cloudpilot
+    description: Local Development API Server
 paths:
   /healthz:
     get:

@@ -25,7 +25,7 @@ Explore comprehensive documentation covering all technical dimensions of CloudPi
 - **[Discovery & FinOps Engine](docs/discovery-and-finops.md)**: Multi-cloud scanners (AWS, GCP, Azure), 30-day time-series cost aggregation, and budget alert mechanisms.
 - **[Security & Policy Guardrails](docs/security-and-policies.md)**: CIS Benchmarks, SOC 2, HIPAA, AI Safety rules, finding resolution lifecycle, and OIDC PKCE security.
 - **[AI Workloads & Copilot](docs/ai-workloads-and-copilot.md)**: Foundation models observability (Bedrock, SageMaker, Vertex AI, Azure OpenAI), token velocity metrics, and pluggable AI Copilot.
-- **[Deployment & Operations Guide](docs/deployment-and-operations.md)**: Docker Compose setup, environment variable reference, operational runbooks, and health probes.
+- **[Docker Deployment Guide](deployments/docker/README.md)**: Multi-container Docker Compose orchestration, Caddy gateway configuration, and container operations.
 
 ---
 
@@ -163,42 +163,40 @@ Database setup uses an embedded Go migration runner in `backend/internal/migrati
 ## Local Development & Quickstart
 
 ### Prerequisites
-- **Go**: 1.26 or newer
+- **Go**: 1.24 or newer
 - **Node.js**: 20.19+ or 22.12+
-- **PostgreSQL**: 16+ (or Docker Desktop)
+- **PostgreSQL**: 16+
 - **npm** or **pnpm**
-
-### 1. Start with Docker Compose
-From the repository root:
-
-```bash
-# 1. Prepare environment configuration
-cp .env.example .env
-
-# 2. Spin up PostgreSQL, API, Worker, and Caddy Gateway
-docker compose -f deployments/docker/docker-compose.yml --env-file .env up --build -d
-```
-
-The services will be reachable at:
-- **CloudPilot Web App**: `http://localhost:5173` (Frontend UI)
-- **Backend API**: `http://localhost:8080/cloudpilot` (Detailed Health: `http://localhost:8080/cloudpilot/healthz`)
-- **PostgreSQL**: `localhost:5432` (`cloudpilot` database)
 
 ---
 
-### 2. Run Manually (Local Host Development)
+### Step 1: Environment Setup
+Copy the configuration template:
+```bash
+cp .env.example .env
+```
+Ensure your local PostgreSQL database is created and update `DATABASE_URL` in `.env`.
+
+---
+
+### Step 2: Start Backend Services
 
 #### Terminal 1: Backend API
 ```bash
 cd backend
 go run ./cmd/api
 ```
+The API initializes database migrations and listens on `http://localhost:8080`.
 
-#### Terminal 2: Background Discovery Worker
+#### Terminal 2: Autonomous Discovery Worker
 ```bash
 cd backend
 go run ./cmd/worker
 ```
+
+---
+
+### Step 3: Start Frontend Web App
 
 #### Terminal 3: Frontend Vite Server
 ```bash
@@ -206,6 +204,19 @@ cd frontend
 npm install
 npm run dev
 ```
+
+The frontend Vite dev server will start at `http://localhost:5173`.
+
+---
+
+### Service Endpoints
+
+- **Frontend Web App**: `http://localhost:5173`
+- **Backend API**: `http://localhost:8080/cloudpilot`
+- **Detailed Health Check**: `http://localhost:8080/cloudpilot/healthz`
+- **Google OAuth Callback**: `http://localhost:8080/cloudpilot/auth/callback`
+
+*(For containerized deployment instructions, see [deployments/docker/README.md](file:///C:/Users/shree/Desktop/CloudPilot/deployments/docker/README.md))*
 
 ---
 

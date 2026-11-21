@@ -6,7 +6,7 @@ The CloudPilot backend exposes a RESTful HTTP API conforming to the OpenAPI 3.1 
 
 ## 1. Global Conventions
 
-- **Base URL**: `http://localhost:8080/cloudpilot/api/v1` (or `https://api.cloudpilot.com/cloudpilot/api/v1` in production).
+- **Base URL**: `http://localhost:8080/cloudpilot/api/v1`
 - **Transport**: HTTPS with standard JSON payloads (`Content-Type: application/json`).
 - **Authentication**: Authenticated session cookie (`cp_session`), sent automatically via browser requests with `credentials: 'include'`.
 - **Tenant Context**: Passed via `X-Organisation-ID` header or derived from the user's active session.
