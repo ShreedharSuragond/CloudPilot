@@ -123,23 +123,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/dev-login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Development-only mock login for local testing */
-        post: operations["devLogin"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/readyz": {
         parameters: {
             query?: never;
@@ -157,14 +140,666 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get top-line KPIs and metrics */
+        get: operations["getDashboardSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/spend-breakdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get monthly spend breakdown by provider and category */
+        get: operations["getSpendBreakdown"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/recent-findings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get top security and compliance findings */
+        get: operations["getRecentFindings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List connected cloud accounts */
+        get: operations["listAccounts"];
+        put?: never;
+        /** Connect a new cloud account */
+        post: operations["connectAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trigger discovery sync for cloud account */
+        post: operations["syncAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect a cloud account and purge associated resources */
+        delete: operations["disconnectAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all alert and webhook integrations */
+        get: operations["listIntegrations"];
+        put?: never;
+        /** Create a new alert webhook integration */
+        post: operations["createIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/integrations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an alert integration */
+        delete: operations["deleteIntegration"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/integrations/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dispatch test alert to integration webhook */
+        post: operations["testIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/settings/integrations/{id}/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enable or disable an integration */
+        post: operations["toggleIntegration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List cloud resources and AI workloads */
+        get: operations["listInventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/copilot/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get AI-generated cost and security insights */
+        get: operations["getCopilotInsights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/copilot/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Chat with CloudPilot AI Copilot */
+        post: operations["chatWithCopilot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/copilot/remediate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate AI remediation for policy finding */
+        post: operations["remediateFinding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/copilot/remediate/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate executable Terraform or CLI remediation blueprint */
+        post: operations["applyRemediationBlueprint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ai/workloads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List AI foundation models, inference endpoints, and guardrail compliance */
+        get: operations["getAIWorkloads"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all organisations the user belongs to */
+        get: operations["listOrganisations"];
+        put?: never;
+        /** Create a new organisation workspace */
+        post: operations["createOrganisation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get details of the active organisation */
+        get: operations["getCurrentOrganisation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List members in the active organisation */
+        get: operations["listOrganisationMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Update a team member's role */
+        post: operations["updateMemberRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a member from the active organisation */
+        delete: operations["removeMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pending team invitations */
+        get: operations["listInvitations"];
+        put?: never;
+        /** Invite a user by email */
+        post: operations["createInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/organisations/invitations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a pending invitation */
+        delete: operations["revokeInvitation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/audit/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List recent immutable audit events */
+        get: operations["listAuditEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policies/findings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List policy findings with filters */
+        get: operations["listPolicyFindings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policies/compliance-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get compliance score breakdown across frameworks */
+        get: operations["getComplianceSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policies/findings/{id}/suppress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suppress a policy finding */
+        post: operations["suppressPolicyFinding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policies/findings/{id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a policy finding as resolved */
+        post: operations["resolvePolicyFinding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/policies/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trigger policy evaluation across organisation resources */
+        post: operations["evaluatePolicies"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/finops/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve 30-day daily spend trends, projected spend, and AI spend ratio */
+        get: operations["getCostTrends"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/finops/anomalies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Retrieve active cost anomalies and spike detections */
+        get: operations["getCostAnomalies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/finops/budgets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all budgets and current spend status */
+        get: operations["listBudgets"];
+        put?: never;
+        /** Create a new cost budget */
+        post: operations["createBudget"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/finops/budgets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a cost budget */
+        delete: operations["deleteBudget"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        DashboardSummary: {
+            totalResources: number;
+            monthlySpend: number;
+            activeAiWorkloads: number;
+            complianceScore: number;
+            criticalFindingsCount: number;
+            connectedAccounts: number;
+        };
+        SpendBreakdown: {
+            byProvider: {
+                provider?: string;
+                spend?: number;
+                percent?: number;
+            }[];
+            byCategory: {
+                category?: string;
+                spend?: number;
+                percent?: number;
+            }[];
+        };
+        PolicyFinding: {
+            id: string;
+            severity: string;
+            ruleName: string;
+            description: string;
+            remediationGuidance: string;
+            resourceName: string;
+            provider: string;
+            service: string;
+            /** Format: date-time */
+            detectedAt: string;
+        };
+        CloudAccount: {
+            id: string;
+            provider: string;
+            name: string;
+            accountIdentifier: string;
+            roleArn?: string;
+            externalId?: string;
+            status: string;
+            /** Format: date-time */
+            lastSyncAt?: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ConnectAccountRequest: {
+            provider: string;
+            name: string;
+            accountIdentifier: string;
+            roleArn?: string;
+        };
+        CloudResource: {
+            id: string;
+            accountId: string;
+            provider: string;
+            service: string;
+            resourceType: string;
+            resourceId: string;
+            name: string;
+            region: string;
+            status: string;
+            monthlyCost: number;
+            tags?: Record<string, never>;
+            /** Format: date-time */
+            discoveredAt: string;
+        };
+        CopilotInsightsResponse: {
+            provider: string;
+            insights: components["schemas"]["CopilotInsight"][];
+        };
+        CopilotInsight: {
+            category: string;
+            title: string;
+            summary: string;
+            estimatedSavings: number;
+            remediationCode: string;
+        };
+        ChatRequest: {
+            messages: {
+                role: string;
+                content: string;
+            }[];
+        };
+        ChatResponse: {
+            provider: string;
+            message: string;
+        };
         AuthConfig: {
             enabled: boolean;
             clientConfigured: boolean;
-            devAuthEnabled?: boolean;
         };
         AuthMe: {
             user: components["schemas"]["AuthUser"];
@@ -188,6 +823,227 @@ export interface components {
         Health: {
             /** @example ok */
             status: string;
+        };
+        Organisation: {
+            id: string;
+            name: string;
+            /** @enum {string} */
+            role: "owner" | "admin" | "member" | "viewer";
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateOrganisationRequest: {
+            name: string;
+        };
+        OrganisationMember: {
+            userId: string;
+            email: string;
+            name: string;
+            /** @enum {string} */
+            role: "owner" | "admin" | "member" | "viewer";
+            /** Format: date-time */
+            joinedAt: string;
+        };
+        UpdateMemberRoleRequest: {
+            /** @enum {string} */
+            role: "owner" | "admin" | "member" | "viewer";
+        };
+        OrganisationInvitation: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "owner" | "admin" | "member" | "viewer";
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateInvitationRequest: {
+            email: string;
+            /** @enum {string} */
+            role: "owner" | "admin" | "member" | "viewer";
+        };
+        AuditEvent: {
+            id: number;
+            organisationId?: string;
+            actorUserId?: string;
+            actorEmail?: string;
+            actorName?: string;
+            action: string;
+            targetType: string;
+            targetId?: string;
+            metadata?: Record<string, never>;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PolicyFindingDetail: {
+            id: string;
+            organisationId: string;
+            cloudResourceId?: string;
+            resourceName: string;
+            provider: string;
+            service: string;
+            /** @enum {string} */
+            severity: "critical" | "high" | "medium" | "low";
+            ruleName: string;
+            framework: string;
+            description: string;
+            remediationGuidance: string;
+            /** @enum {string} */
+            status: "open" | "suppressed" | "resolved";
+            suppressionReason?: string;
+            /** Format: date-time */
+            detectedAt: string;
+            /** Format: date-time */
+            resolvedAt?: string;
+        };
+        ComplianceSummaryDetail: {
+            overallScore: number;
+            totalOpenFindings: number;
+            criticalCount: number;
+            highCount: number;
+            mediumCount: number;
+            lowCount: number;
+            frameworkScores: {
+                [key: string]: number;
+            };
+        };
+        SuppressFindingRequest: {
+            reason?: string;
+        };
+        DailySpendItem: {
+            date: string;
+            infraSpend: number;
+            aiSpend: number;
+            totalSpend: number;
+        };
+        CostTrend: {
+            monthlyRunRate: number;
+            previousMonthSpend: number;
+            percentChange: number;
+            projectedSpend: number;
+            aiSpendRatio: number;
+            dailySeries: components["schemas"]["DailySpendItem"][];
+        };
+        CostAnomaly: {
+            id: string;
+            resourceId: string;
+            resourceName: string;
+            provider: string;
+            service: string;
+            expectedMonthlyCost: number;
+            actualMonthlyCost: number;
+            spikePercent: number;
+            /** Format: date-time */
+            detectedAt: string;
+            explanation: string;
+        };
+        Budget: {
+            id: string;
+            organisationId: string;
+            name: string;
+            amount: number;
+            period: string;
+            alertThresholdPercent: number;
+            cloudAccountId?: string;
+            currentSpend: number;
+            percentUsed: number;
+            /** @enum {string} */
+            status: "ok" | "warning" | "exceeded";
+            /** Format: date-time */
+            createdAt: string;
+        };
+        CreateBudgetRequest: {
+            name: string;
+            amount: number;
+            period?: string;
+            alertThresholdPercent?: number;
+            cloudAccountId?: string;
+        };
+        AIWorkloadSummary: {
+            totalAiWorkloads: number;
+            monthlyAiSpend: number;
+            activeEndpoints: number;
+            foundationModels: number;
+            guardrailsCompliantCount: number;
+            guardrailsViolationsCount: number;
+        };
+        AIWorkloadGuardrails: {
+            piiFiltering: boolean;
+            modelAuditLogging: boolean;
+            kmsEncryption: boolean;
+        };
+        AIWorkloadItem: {
+            id: string;
+            accountId: string;
+            provider: string;
+            service: string;
+            resourceType: string;
+            resourceId: string;
+            name: string;
+            region: string;
+            status: string;
+            monthlyCost: number;
+            modelProvider: string;
+            contextWindow?: number;
+            estimatedTokensPerDay: number;
+            guardrails: components["schemas"]["AIWorkloadGuardrails"];
+            openFindingsCount: number;
+            tags?: {
+                [key: string]: unknown;
+            };
+            metadata?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            discoveredAt?: string;
+        };
+        AIWorkloadsResponse: {
+            summary: components["schemas"]["AIWorkloadSummary"];
+            workloads: components["schemas"]["AIWorkloadItem"][];
+        };
+        ApplyRemediationRequest: {
+            findingId?: string;
+            resourceId?: string;
+            guardrail?: string;
+            /** @enum {string} */
+            remediationType?: "terraform" | "cli";
+        };
+        ApplyRemediationResponse: {
+            title: string;
+            remediationType: string;
+            targetResource: string;
+            provider: string;
+            code: string;
+            instructions: string[];
+        };
+        Integration: {
+            id: string;
+            organisationId: string;
+            name: string;
+            /** @enum {string} */
+            provider: "slack" | "teams" | "discord" | "webhook";
+            webhookUrl: string;
+            events: string[];
+            enabled: boolean;
+            /** Format: date-time */
+            lastTriggeredAt?: string;
+            lastStatus?: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateIntegrationRequest: {
+            name: string;
+            /** @enum {string} */
+            provider: "slack" | "teams" | "discord" | "webhook";
+            webhookUrl: string;
+            events?: string[];
+        };
+        TestIntegrationResponse: {
+            success: boolean;
+            message: string;
         };
     };
     responses: never;
@@ -374,33 +1230,6 @@ export interface operations {
             };
         };
     };
-    devLogin: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Session created and cookie set */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthMe"];
-                };
-            };
-            /** @description Development login is disabled in this environment */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     getReadiness: {
         parameters: {
             query?: never;
@@ -427,6 +1256,812 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Health"];
                 };
+            };
+        };
+    };
+    getDashboardSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dashboard summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardSummary"];
+                };
+            };
+        };
+    };
+    getSpendBreakdown: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Spend breakdown */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpendBreakdown"];
+                };
+            };
+        };
+    };
+    getRecentFindings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of policy findings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyFinding"][];
+                };
+            };
+        };
+    };
+    listAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of cloud accounts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloudAccount"][];
+                };
+            };
+        };
+    };
+    connectAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Account connected */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    syncAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sync completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    disconnectAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Account disconnected successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listIntegrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of integrations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Integration"][];
+                };
+            };
+        };
+    };
+    createIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIntegrationRequest"];
+            };
+        };
+        responses: {
+            /** @description Integration created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Integration"];
+                };
+            };
+        };
+    };
+    deleteIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration deleted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    testIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Test ping result */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestIntegrationResponse"];
+                };
+            };
+        };
+    };
+    toggleIntegration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Integration toggled */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listInventory: {
+        parameters: {
+            query?: {
+                type?: string;
+                provider?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of resources */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CloudResource"][];
+                };
+            };
+        };
+    };
+    getCopilotInsights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Copilot insights */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CopilotInsightsResponse"];
+                };
+            };
+        };
+    };
+    chatWithCopilot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatRequest"];
+            };
+        };
+        responses: {
+            /** @description AI response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatResponse"];
+                };
+            };
+        };
+    };
+    remediateFinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    findingId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Remediation code */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    applyRemediationBlueprint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyRemediationRequest"];
+            };
+        };
+        responses: {
+            /** @description Executable remediation blueprint */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplyRemediationResponse"];
+                };
+            };
+        };
+    };
+    getAIWorkloads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description AI workloads and governance summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIWorkloadsResponse"];
+                };
+            };
+        };
+    };
+    listOrganisations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of user workspaces */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organisation"][];
+                };
+            };
+        };
+    };
+    createOrganisation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrganisationRequest"];
+            };
+        };
+        responses: {
+            /** @description Workspace created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organisation"];
+                };
+            };
+        };
+    };
+    getCurrentOrganisation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active organisation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organisation"];
+                };
+            };
+        };
+    };
+    listOrganisationMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Team members */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganisationMember"][];
+                };
+            };
+        };
+    };
+    updateMemberRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMemberRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description Role updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    removeMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Member removed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listInvitations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pending invitations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganisationInvitation"][];
+                };
+            };
+        };
+    };
+    createInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateInvitationRequest"];
+            };
+        };
+        responses: {
+            /** @description Invitation created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganisationInvitation"];
+                };
+            };
+        };
+    };
+    revokeInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitation revoked */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listAuditEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Audit events log */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEvent"][];
+                };
+            };
+        };
+    };
+    listPolicyFindings: {
+        parameters: {
+            query?: {
+                status?: string;
+                severity?: string;
+                framework?: string;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of policy findings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PolicyFindingDetail"][];
+                };
+            };
+        };
+    };
+    getComplianceSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Compliance summary */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplianceSummaryDetail"];
+                };
+            };
+        };
+    };
+    suppressPolicyFinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SuppressFindingRequest"];
+            };
+        };
+        responses: {
+            /** @description Finding suppressed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    resolvePolicyFinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Finding resolved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    evaluatePolicies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evaluation completed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getCostTrends: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cost trends retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostTrend"];
+                };
+            };
+        };
+    };
+    getCostAnomalies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cost anomalies list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostAnomaly"][];
+                };
+            };
+        };
+    };
+    listBudgets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Budgets list */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Budget"][];
+                };
+            };
+        };
+    };
+    createBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBudgetRequest"];
+            };
+        };
+        responses: {
+            /** @description Budget created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Budget"];
+                };
+            };
+        };
+    };
+    deleteBudget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Budget deleted successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

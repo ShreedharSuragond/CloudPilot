@@ -12,11 +12,4 @@ export default defineConfig({
       '@': path.resolve(fileURLToPath(new URL('.', import.meta.url)), './src'),
     },
   },
-  server: {
-    proxy: {
-      '/healthz': 'http://localhost:8080',
-      '/readyz': 'http://localhost:8080',
-      '/auth': 'http://localhost:8080',
-    },
-  },
 })

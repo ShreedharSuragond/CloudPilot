@@ -102,19 +102,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Status'
-  /auth/dev-login:
-    post:
-      operationId: devLogin
-      summary: Development-only mock login for local testing
-      responses:
-        '200':
-          description: Session created and cookie set
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthMe'
-        '403':
-          description: Development login is disabled in this environment
   /readyz:
     get:
       operationId: getReadiness
@@ -132,8 +119,668 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Health'
+  /api/v1/dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      summary: Get top-line KPIs and metrics
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+  /api/v1/dashboard/spend-breakdown:
+    get:
+      operationId: getSpendBreakdown
+      summary: Get monthly spend breakdown by provider and category
+      responses:
+        '200':
+          description: Spend breakdown
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendBreakdown'
+  /api/v1/dashboard/recent-findings:
+    get:
+      operationId: getRecentFindings
+      summary: Get top security and compliance findings
+      responses:
+        '200':
+          description: List of policy findings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyFinding'
+  /api/v1/accounts:
+    get:
+      operationId: listAccounts
+      summary: List connected cloud accounts
+      responses:
+        '200':
+          description: List of cloud accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CloudAccount'
+    post:
+      operationId: connectAccount
+      summary: Connect a new cloud account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectAccountRequest'
+      responses:
+        '201':
+          description: Account connected
+  /api/v1/accounts/{id}/sync:
+    post:
+      operationId: syncAccount
+      summary: Trigger discovery sync for cloud account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sync completed
+  /api/v1/accounts/{id}:
+    delete:
+      operationId: disconnectAccount
+      summary: Disconnect a cloud account and purge associated resources
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Account disconnected successfully
+  /api/v1/settings/integrations:
+    get:
+      operationId: listIntegrations
+      summary: List all alert and webhook integrations
+      responses:
+        '200':
+          description: List of integrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Integration'
+    post:
+      operationId: createIntegration
+      summary: Create a new alert webhook integration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIntegrationRequest'
+      responses:
+        '201':
+          description: Integration created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+  /api/v1/settings/integrations/{id}:
+    delete:
+      operationId: deleteIntegration
+      summary: Delete an alert integration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Integration deleted
+  /api/v1/settings/integrations/{id}/test:
+    post:
+      operationId: testIntegration
+      summary: Dispatch test alert to integration webhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Test ping result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestIntegrationResponse'
+  /api/v1/settings/integrations/{id}/toggle:
+    post:
+      operationId: toggleIntegration
+      summary: Enable or disable an integration
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Integration toggled
+  /api/v1/inventory:
+    get:
+      operationId: listInventory
+      summary: List cloud resources and AI workloads
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: provider
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CloudResource'
+  /api/v1/copilot/insights:
+    get:
+      operationId: getCopilotInsights
+      summary: Get AI-generated cost and security insights
+      responses:
+        '200':
+          description: Copilot insights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotInsightsResponse'
+  /api/v1/copilot/chat:
+    post:
+      operationId: chatWithCopilot
+      summary: Chat with CloudPilot AI Copilot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+  /api/v1/copilot/remediate:
+    post:
+      operationId: remediateFinding
+      summary: Generate AI remediation for policy finding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [findingId]
+              properties:
+                findingId:
+                  type: string
+      responses:
+        '200':
+          description: Remediation code
+  /api/v1/copilot/remediate/apply:
+    post:
+      operationId: applyRemediationBlueprint
+      summary: Generate executable Terraform or CLI remediation blueprint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyRemediationRequest'
+      responses:
+        '200':
+          description: Executable remediation blueprint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplyRemediationResponse'
+  /api/v1/ai/workloads:
+    get:
+      operationId: getAIWorkloads
+      summary: List AI foundation models, inference endpoints, and guardrail compliance
+      responses:
+        '200':
+          description: AI workloads and governance summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIWorkloadsResponse'
+  /api/v1/organisations:
+    get:
+      operationId: listOrganisations
+      summary: List all organisations the user belongs to
+      responses:
+        '200':
+          description: List of user workspaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Organisation'
+    post:
+      operationId: createOrganisation
+      summary: Create a new organisation workspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganisationRequest'
+      responses:
+        '201':
+          description: Workspace created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+  /api/v1/organisations/current:
+    get:
+      operationId: getCurrentOrganisation
+      summary: Get details of the active organisation
+      responses:
+        '200':
+          description: Active organisation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organisation'
+  /api/v1/organisations/members:
+    get:
+      operationId: listOrganisationMembers
+      summary: List members in the active organisation
+      responses:
+        '200':
+          description: Team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganisationMember'
+  /api/v1/organisations/members/{userId}/role:
+    post:
+      operationId: updateMemberRole
+      summary: Update a team member's role
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMemberRoleRequest'
+      responses:
+        '200':
+          description: Role updated
+  /api/v1/organisations/members/{userId}:
+    delete:
+      operationId: removeMember
+      summary: Remove a member from the active organisation
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Member removed
+  /api/v1/organisations/invitations:
+    get:
+      operationId: listInvitations
+      summary: List pending team invitations
+      responses:
+        '200':
+          description: Pending invitations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganisationInvitation'
+    post:
+      operationId: createInvitation
+      summary: Invite a user by email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInvitationRequest'
+      responses:
+        '201':
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganisationInvitation'
+  /api/v1/organisations/invitations/{id}:
+    delete:
+      operationId: revokeInvitation
+      summary: Revoke a pending invitation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitation revoked
+  /api/v1/audit/events:
+    get:
+      operationId: listAuditEvents
+      summary: List recent immutable audit events
+      responses:
+        '200':
+          description: Audit events log
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEvent'
+  /api/v1/policies/findings:
+    get:
+      operationId: listPolicyFindings
+      summary: List policy findings with filters
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: framework
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of policy findings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyFindingDetail'
+  /api/v1/policies/compliance-summary:
+    get:
+      operationId: getComplianceSummary
+      summary: Get compliance score breakdown across frameworks
+      responses:
+        '200':
+          description: Compliance summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceSummaryDetail'
+  /api/v1/policies/findings/{id}/suppress:
+    post:
+      operationId: suppressPolicyFinding
+      summary: Suppress a policy finding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuppressFindingRequest'
+      responses:
+        '200':
+          description: Finding suppressed
+  /api/v1/policies/findings/{id}/resolve:
+    post:
+      operationId: resolvePolicyFinding
+      summary: Mark a policy finding as resolved
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Finding resolved
+  /api/v1/policies/evaluate:
+    post:
+      operationId: evaluatePolicies
+      summary: Trigger policy evaluation across organisation resources
+      responses:
+        '200':
+          description: Evaluation completed
+  /api/v1/finops/trends:
+    get:
+      operationId: getCostTrends
+      summary: Retrieve 30-day daily spend trends, projected spend, and AI spend ratio
+      responses:
+        '200':
+          description: Cost trends retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostTrend'
+  /api/v1/finops/anomalies:
+    get:
+      operationId: getCostAnomalies
+      summary: Retrieve active cost anomalies and spike detections
+      responses:
+        '200':
+          description: Cost anomalies list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CostAnomaly'
+  /api/v1/finops/budgets:
+    get:
+      operationId: listBudgets
+      summary: List all budgets and current spend status
+      responses:
+        '200':
+          description: Budgets list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Budget'
+    post:
+      operationId: createBudget
+      summary: Create a new cost budget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudgetRequest'
+      responses:
+        '201':
+          description: Budget created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+  /api/v1/finops/budgets/{id}:
+    delete:
+      operationId: deleteBudget
+      summary: Delete a cost budget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Budget deleted successfully
 components:
   schemas:
+    DashboardSummary:
+      type: object
+      required: [totalResources, monthlySpend, activeAiWorkloads, complianceScore, criticalFindingsCount, connectedAccounts]
+      properties:
+        totalResources:
+          type: integer
+        monthlySpend:
+          type: number
+        activeAiWorkloads:
+          type: integer
+        complianceScore:
+          type: number
+        criticalFindingsCount:
+          type: integer
+        connectedAccounts:
+          type: integer
+    SpendBreakdown:
+      type: object
+      required: [byProvider, byCategory]
+      properties:
+        byProvider:
+          type: array
+          items:
+            type: object
+            properties:
+              provider: { type: string }
+              spend: { type: number }
+              percent: { type: number }
+        byCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              category: { type: string }
+              spend: { type: number }
+              percent: { type: number }
+    PolicyFinding:
+      type: object
+      required: [id, severity, ruleName, description, remediationGuidance, resourceName, provider, service, detectedAt]
+      properties:
+        id: { type: string }
+        severity: { type: string }
+        ruleName: { type: string }
+        description: { type: string }
+        remediationGuidance: { type: string }
+        resourceName: { type: string }
+        provider: { type: string }
+        service: { type: string }
+        detectedAt: { type: string, format: date-time }
+    CloudAccount:
+      type: object
+      required: [id, provider, name, accountIdentifier, status, createdAt]
+      properties:
+        id: { type: string }
+        provider: { type: string }
+        name: { type: string }
+        accountIdentifier: { type: string }
+        roleArn: { type: string }
+        externalId: { type: string }
+        status: { type: string }
+        lastSyncAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+    ConnectAccountRequest:
+      type: object
+      required: [provider, name, accountIdentifier]
+      properties:
+        provider: { type: string }
+        name: { type: string }
+        accountIdentifier: { type: string }
+        roleArn: { type: string }
+    CloudResource:
+      type: object
+      required: [id, accountId, provider, service, resourceType, resourceId, name, region, status, monthlyCost, discoveredAt]
+      properties:
+        id: { type: string }
+        accountId: { type: string }
+        provider: { type: string }
+        service: { type: string }
+        resourceType: { type: string }
+        resourceId: { type: string }
+        name: { type: string }
+        region: { type: string }
+        status: { type: string }
+        monthlyCost: { type: number }
+        tags: { type: object }
+        discoveredAt: { type: string, format: date-time }
+    CopilotInsightsResponse:
+      type: object
+      required: [provider, insights]
+      properties:
+        provider: { type: string }
+        insights:
+          type: array
+          items:
+            $ref: '#/components/schemas/CopilotInsight'
+    CopilotInsight:
+      type: object
+      required: [category, title, summary, estimatedSavings, remediationCode]
+      properties:
+        category: { type: string }
+        title: { type: string }
+        summary: { type: string }
+        estimatedSavings: { type: number }
+        remediationCode: { type: string }
+    ChatRequest:
+      type: object
+      required: [messages]
+      properties:
+        messages:
+          type: array
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role: { type: string }
+              content: { type: string }
+    ChatResponse:
+      type: object
+      required: [provider, message]
+      properties:
+        provider: { type: string }
+        message: { type: string }
     AuthConfig:
       type: object
       required: [enabled, clientConfigured]
@@ -141,8 +788,6 @@ components:
         enabled:
           type: boolean
         clientConfigured:
-          type: boolean
-        devAuthEnabled:
           type: boolean
     AuthMe:
       type: object
@@ -189,3 +834,425 @@ components:
         status:
           type: string
           examples: [ok]
+    Organisation:
+      type: object
+      required: [id, name, role, createdAt]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+        createdAt:
+          type: string
+          format: date-time
+    CreateOrganisationRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    OrganisationMember:
+      type: object
+      required: [userId, email, name, role, joinedAt]
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+        joinedAt:
+          type: string
+          format: date-time
+    UpdateMemberRoleRequest:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+    OrganisationInvitation:
+      type: object
+      required: [id, email, role, expiresAt, createdAt]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    CreateInvitationRequest:
+      type: object
+      required: [email, role]
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, member, viewer]
+    AuditEvent:
+      type: object
+      required: [id, action, targetType, createdAt]
+      properties:
+        id:
+          type: integer
+        organisationId:
+          type: string
+        actorUserId:
+          type: string
+        actorEmail:
+          type: string
+        actorName:
+          type: string
+        action:
+          type: string
+        targetType:
+          type: string
+        targetId:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+    PolicyFindingDetail:
+      type: object
+      required: [id, organisationId, resourceName, provider, service, severity, ruleName, framework, description, remediationGuidance, status, detectedAt]
+      properties:
+        id:
+          type: string
+        organisationId:
+          type: string
+        cloudResourceId:
+          type: string
+        resourceName:
+          type: string
+        provider:
+          type: string
+        service:
+          type: string
+        severity:
+          type: string
+          enum: [critical, high, medium, low]
+        ruleName:
+          type: string
+        framework:
+          type: string
+        description:
+          type: string
+        remediationGuidance:
+          type: string
+        status:
+          type: string
+          enum: [open, suppressed, resolved]
+        suppressionReason:
+          type: string
+        detectedAt:
+          type: string
+          format: date-time
+        resolvedAt:
+          type: string
+          format: date-time
+    ComplianceSummaryDetail:
+      type: object
+      required: [overallScore, totalOpenFindings, criticalCount, highCount, mediumCount, lowCount, frameworkScores]
+      properties:
+        overallScore:
+          type: number
+        totalOpenFindings:
+          type: integer
+        criticalCount:
+          type: integer
+        highCount:
+          type: integer
+        mediumCount:
+          type: integer
+        lowCount:
+          type: integer
+        frameworkScores:
+          type: object
+          additionalProperties:
+            type: number
+    SuppressFindingRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+    DailySpendItem:
+      type: object
+      required: [date, infraSpend, aiSpend, totalSpend]
+      properties:
+        date:
+          type: string
+        infraSpend:
+          type: number
+        aiSpend:
+          type: number
+        totalSpend:
+          type: number
+    CostTrend:
+      type: object
+      required: [monthlyRunRate, previousMonthSpend, percentChange, projectedSpend, aiSpendRatio, dailySeries]
+      properties:
+        monthlyRunRate:
+          type: number
+        previousMonthSpend:
+          type: number
+        percentChange:
+          type: number
+        projectedSpend:
+          type: number
+        aiSpendRatio:
+          type: number
+        dailySeries:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailySpendItem'
+    CostAnomaly:
+      type: object
+      required: [id, resourceId, resourceName, provider, service, expectedMonthlyCost, actualMonthlyCost, spikePercent, detectedAt, explanation]
+      properties:
+        id:
+          type: string
+        resourceId:
+          type: string
+        resourceName:
+          type: string
+        provider:
+          type: string
+        service:
+          type: string
+        expectedMonthlyCost:
+          type: number
+        actualMonthlyCost:
+          type: number
+        spikePercent:
+          type: number
+        detectedAt:
+          type: string
+          format: date-time
+        explanation:
+          type: string
+    Budget:
+      type: object
+      required: [id, organisationId, name, amount, period, alertThresholdPercent, currentSpend, percentUsed, status, createdAt]
+      properties:
+        id:
+          type: string
+        organisationId:
+          type: string
+        name:
+          type: string
+        amount:
+          type: number
+        period:
+          type: string
+        alertThresholdPercent:
+          type: integer
+        cloudAccountId:
+          type: string
+        currentSpend:
+          type: number
+        percentUsed:
+          type: number
+        status:
+          type: string
+          enum: [ok, warning, exceeded]
+        createdAt:
+          type: string
+          format: date-time
+    CreateBudgetRequest:
+      type: object
+      required: [name, amount]
+      properties:
+        name:
+          type: string
+        amount:
+          type: number
+        period:
+          type: string
+        alertThresholdPercent:
+          type: integer
+        cloudAccountId:
+          type: string
+    AIWorkloadSummary:
+      type: object
+      required: [totalAiWorkloads, monthlyAiSpend, activeEndpoints, foundationModels, guardrailsCompliantCount, guardrailsViolationsCount]
+      properties:
+        totalAiWorkloads:
+          type: integer
+        monthlyAiSpend:
+          type: number
+        activeEndpoints:
+          type: integer
+        foundationModels:
+          type: integer
+        guardrailsCompliantCount:
+          type: integer
+        guardrailsViolationsCount:
+          type: integer
+    AIWorkloadGuardrails:
+      type: object
+      required: [piiFiltering, modelAuditLogging, kmsEncryption]
+      properties:
+        piiFiltering:
+          type: boolean
+        modelAuditLogging:
+          type: boolean
+        kmsEncryption:
+          type: boolean
+    AIWorkloadItem:
+      type: object
+      required: [id, accountId, provider, service, resourceType, resourceId, name, region, status, monthlyCost, modelProvider, estimatedTokensPerDay, guardrails, openFindingsCount]
+      properties:
+        id:
+          type: string
+        accountId:
+          type: string
+        provider:
+          type: string
+        service:
+          type: string
+        resourceType:
+          type: string
+        resourceId:
+          type: string
+        name:
+          type: string
+        region:
+          type: string
+        status:
+          type: string
+        monthlyCost:
+          type: number
+        modelProvider:
+          type: string
+        contextWindow:
+          type: integer
+        estimatedTokensPerDay:
+          type: integer
+        guardrails:
+          $ref: '#/components/schemas/AIWorkloadGuardrails'
+        openFindingsCount:
+          type: integer
+        tags:
+          type: object
+          additionalProperties: true
+        metadata:
+          type: object
+          additionalProperties: true
+        discoveredAt:
+          type: string
+          format: date-time
+    AIWorkloadsResponse:
+      type: object
+      required: [summary, workloads]
+      properties:
+        summary:
+          $ref: '#/components/schemas/AIWorkloadSummary'
+        workloads:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIWorkloadItem'
+    ApplyRemediationRequest:
+      type: object
+      properties:
+        findingId:
+          type: string
+        resourceId:
+          type: string
+        guardrail:
+          type: string
+        remediationType:
+          type: string
+          enum: [terraform, cli]
+    ApplyRemediationResponse:
+      type: object
+      required: [title, remediationType, targetResource, provider, code, instructions]
+      properties:
+        title:
+          type: string
+        remediationType:
+          type: string
+        targetResource:
+          type: string
+        provider:
+          type: string
+        code:
+          type: string
+        instructions:
+          type: array
+          items:
+            type: string
+    Integration:
+      type: object
+      required: [id, organisationId, name, provider, webhookUrl, events, enabled, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        organisationId:
+          type: string
+        name:
+          type: string
+        provider:
+          type: string
+          enum: [slack, teams, discord, webhook]
+        webhookUrl:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+        enabled:
+          type: boolean
+        lastTriggeredAt:
+          type: string
+          format: date-time
+        lastStatus:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateIntegrationRequest:
+      type: object
+      required: [name, provider, webhookUrl]
+      properties:
+        name:
+          type: string
+        provider:
+          type: string
+          enum: [slack, teams, discord, webhook]
+        webhookUrl:
+          type: string
+        events:
+          type: array
+          items:
+            type: string
+    TestIntegrationResponse:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+
+
+

@@ -4,7 +4,6 @@ import { api } from '../../lib/api'
 export type AuthConfig = {
   enabled: boolean
   clientConfigured: boolean
-  devAuthEnabled?: boolean
 }
 
 export type AuthMe = {

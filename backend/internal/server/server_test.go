@@ -39,3 +39,27 @@ func TestReadinessRequiresDatabase(t *testing.T) {
 		t.Fatalf("unexpected response body: %s", recorder.Body.String())
 	}
 }
+
+func TestOrganisationsEndpointRequiresAuth(t *testing.T) {
+	handler := New(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), config.Config{})
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/api/v1/organisations", nil)
+
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != 401 {
+		t.Fatalf("expected status 401 without auth, got %d", recorder.Code)
+	}
+}
+
+func TestAuditEndpointRequiresAuth(t *testing.T) {
+	handler := New(nil, slog.New(slog.NewTextHandler(io.Discard, nil)), config.Config{})
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/api/v1/audit/events", nil)
+
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != 401 {
+		t.Fatalf("expected status 401 without auth, got %d", recorder.Code)
+	}
+}

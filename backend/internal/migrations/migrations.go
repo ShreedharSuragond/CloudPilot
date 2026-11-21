@@ -32,6 +32,11 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) error {
 	}
 	defer tx.Rollback(ctx)
 
+	// Acquire transactional advisory lock to prevent concurrent migrations
+	if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(718293)`); err != nil {
+		return fmt.Errorf("acquire migration lock: %w", err)
+	}
+
 	if _, err := tx.Exec(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations (
 			name TEXT PRIMARY KEY,
@@ -60,7 +65,7 @@ func Apply(ctx context.Context, pool *pgxpool.Pool) error {
 			return fmt.Errorf("apply migration %s: %w", name, err)
 		}
 		if _, err := tx.Exec(ctx,
-			`INSERT INTO schema_migrations (name) VALUES ($1)`, name,
+			`INSERT INTO schema_migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`, name,
 		); err != nil {
 			return fmt.Errorf("record migration %s: %w", name, err)
 		}

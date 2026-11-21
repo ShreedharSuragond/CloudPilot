@@ -18,12 +18,54 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/your-org/cloudpilot/internal/config"
+	"github.com/your-org/cloudpilot/internal/seed"
 )
 
 const (
 	sessionCookieName    = "cloudpilot_session"
 	oauthStateCookieName = "cloudpilot_oauth_state"
 )
+
+type contextKey string
+
+const (
+	UserContextKey contextKey = "cloudpilot_user_id"
+	OrgContextKey  contextKey = "cloudpilot_org_id"
+	RoleContextKey contextKey = "cloudpilot_user_role"
+)
+
+func WithUser(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, UserContextKey, userID)
+}
+
+func WithOrg(ctx context.Context, orgID string) context.Context {
+	return context.WithValue(ctx, OrgContextKey, orgID)
+}
+
+func WithRole(ctx context.Context, role string) context.Context {
+	return context.WithValue(ctx, RoleContextKey, role)
+}
+
+func GetUserID(ctx context.Context) string {
+	if v, ok := ctx.Value(UserContextKey).(string); ok {
+		return v
+	}
+	return ""
+}
+
+func GetOrgID(ctx context.Context) string {
+	if v, ok := ctx.Value(OrgContextKey).(string); ok {
+		return v
+	}
+	return ""
+}
+
+func GetUserRole(ctx context.Context) string {
+	if v, ok := ctx.Value(RoleContextKey).(string); ok {
+		return v
+	}
+	return ""
+}
 
 type Handler struct {
 	pool       *pgxpool.Pool
@@ -85,17 +127,14 @@ func (h *Handler) Routes() http.Handler {
 	router.Get("/callback", h.callback)
 	router.Get("/me", h.me)
 	router.Post("/logout", h.logout)
-	router.Post("/dev-login", h.devLogin)
 	return router
 }
 
 func (h *Handler) config(w http.ResponseWriter, _ *http.Request) {
 	enabled := h.cfg.OIDCIssuer != "" && h.cfg.OIDCClientID != "" && h.cfg.OIDCRedirect != ""
-	devAuthEnabled := h.cfg.DevAuthEnabled && h.cfg.AppEnv != "production"
 	writeJSON(w, http.StatusOK, map[string]any{
 		"enabled":          enabled,
 		"clientConfigured": h.cfg.OIDCClientID != "",
-		"devAuthEnabled":   devAuthEnabled,
 	})
 }
 
@@ -135,13 +174,7 @@ func (h *Handler) startAuthorization(w http.ResponseWriter, r *http.Request, reg
 		return
 	}
 
-	redirectTo := r.URL.Query().Get("redirect")
-	if redirectTo == "" {
-		redirectTo = "/"
-	}
-	if !strings.HasPrefix(redirectTo, "/") || strings.HasPrefix(redirectTo, "//") || strings.HasPrefix(redirectTo, "/\\") {
-		redirectTo = "/"
-	}
+	redirectTo := resolveRedirect(r.URL.Query().Get("redirect"), h.cfg.CORSAllowedOrigins)
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
@@ -159,7 +192,7 @@ func (h *Handler) startAuthorization(w http.ResponseWriter, r *http.Request, reg
 		return
 	}
 
-	h.setOAuthStateCookie(w, r, state)
+	h.writeCookie(w, r, oauthStateCookieName, state, 10*time.Minute)
 
 	oauthConfig := h.oauthConfig(provider)
 	params := []oauth2.AuthCodeOption{
@@ -184,11 +217,11 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
 	// 1. Verify OAuth state cookie against URL query param to prevent Login CSRF
 	stateCookie, err := r.Cookie(oauthStateCookieName)
 	if err != nil || stateCookie.Value == "" || stateCookie.Value != state {
-		h.clearOAuthStateCookie(w, r)
+		h.writeCookie(w, r, oauthStateCookieName, "", -1)
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid or missing OAuth state cookie"})
 		return
 	}
-	h.clearOAuthStateCookie(w, r)
+	h.writeCookie(w, r, oauthStateCookieName, "", -1)
 
 	// 2. Atomically consume the state and PKCE verifier on first read
 	var nonce, verifier, redirectTo string
@@ -288,6 +321,7 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var newOrgID string
 	if membershipCount == 0 {
 		var invOrgID, invRole string
 		err := tx.QueryRow(r.Context(), `
@@ -320,7 +354,6 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
 			if claims.Name != "" {
 				workspaceName = claims.Name + "'s Workspace"
 			}
-			var newOrgID string
 			if err := tx.QueryRow(r.Context(), `
 				INSERT INTO organisations (name)
 				VALUES ($1)
@@ -353,7 +386,11 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.setSessionCookie(w, r, sessionToken)
+	if newOrgID != "" {
+		_ = seed.EnsureSampleData(r.Context(), h.pool, newOrgID)
+	}
+
+	h.writeCookie(w, r, sessionCookieName, sessionToken, 12*time.Hour)
 	http.Redirect(w, r, redirectTo, http.StatusFound)
 }
 
@@ -406,121 +443,12 @@ func (h *Handler) me(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(sessionCookieName)
-	if err == nil && h.pool != nil {
+	if err == nil && cookie.Value != "" && h.pool != nil {
 		_, _ = h.pool.Exec(r.Context(), `DELETE FROM sessions WHERE token_hash = $1`, hashToken(cookie.Value))
 	}
-	h.clearSessionCookie(w, r)
-	h.clearOAuthStateCookie(w, r)
+	h.writeCookie(w, r, sessionCookieName, "", -1)
+	h.writeCookie(w, r, oauthStateCookieName, "", -1)
 	writeJSON(w, http.StatusOK, map[string]string{"status": "logged_out"})
-}
-
-func (h *Handler) devLogin(w http.ResponseWriter, r *http.Request) {
-	if !h.cfg.DevAuthEnabled || h.cfg.AppEnv == "production" {
-		writeJSON(w, http.StatusForbidden, map[string]string{
-			"error": "Development login is disabled in this environment",
-		})
-		return
-	}
-
-	if h.pool == nil {
-		writeJSON(w, http.StatusServiceUnavailable, map[string]string{
-			"error": "Database connection is required for dev login",
-		})
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel()
-
-	tx, err := h.pool.Begin(ctx)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not start transaction"})
-		return
-	}
-	defer tx.Rollback(ctx)
-
-	const devIssuer = "cloudpilot:local"
-	const devSubject = "dev-admin-01"
-	const devEmail = "admin@cloudpilot.dev"
-	const devName = "Jordan Davis"
-
-	var userID string
-	err = tx.QueryRow(ctx, `
-		INSERT INTO users (issuer, subject, email, name, status, last_login_at)
-		VALUES ($1, $2, $3, $4, 'active', now())
-		ON CONFLICT (issuer, subject) DO UPDATE SET
-			email = EXCLUDED.email,
-			name = EXCLUDED.name,
-			status = 'active',
-			last_login_at = now()
-		RETURNING id::text
-	`, devIssuer, devSubject, devEmail, devName).Scan(&userID)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not create dev user"})
-		return
-	}
-
-	var orgID string
-	err = tx.QueryRow(ctx, `
-		SELECT id::text FROM organisations WHERE name = 'Northstar Labs' LIMIT 1
-	`).Scan(&orgID)
-	if err != nil {
-		err = tx.QueryRow(ctx, `
-			INSERT INTO organisations (name)
-			VALUES ('Northstar Labs')
-			RETURNING id::text
-		`).Scan(&orgID)
-		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not create dev organisation"})
-			return
-		}
-	}
-
-	if _, err := tx.Exec(ctx, `
-		INSERT INTO memberships (organisation_id, user_id, role)
-		VALUES ($1::uuid, $2::uuid, 'owner')
-		ON CONFLICT (organisation_id, user_id) DO UPDATE SET role = 'owner'
-	`, orgID, userID); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not assign dev membership"})
-		return
-	}
-
-	sessionToken, err := randomURLToken(32)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not create session token"})
-		return
-	}
-	tokenHash := hashToken(sessionToken)
-
-	if _, err := tx.Exec(ctx, `
-		INSERT INTO sessions (token_hash, user_id, expires_at)
-		VALUES ($1, $2::uuid, now() + interval '12 hours')
-	`, tokenHash, userID); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not create session"})
-		return
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not commit dev login"})
-		return
-	}
-
-	h.setSessionCookie(w, r, sessionToken)
-
-	writeJSON(w, http.StatusOK, meResponse{
-		User: currentUser{
-			ID:    userID,
-			Email: devEmail,
-			Name:  devName,
-		},
-		Memberships: []membership{
-			{
-				OrganisationID:   orgID,
-				OrganisationName: "Northstar Labs",
-				Role:             "owner",
-			},
-		},
-	})
 }
 
 func (h *Handler) currentUserID(r *http.Request) (string, bool) {
@@ -541,60 +469,86 @@ func (h *Handler) currentUserID(r *http.Request) (string, bool) {
 	return userID, err == nil
 }
 
-func (h *Handler) setSessionCookie(w http.ResponseWriter, r *http.Request, token string) {
+func (h *Handler) Authenticate(r *http.Request) (string, string, bool) {
+	userID, orgID, _, ok := h.AuthenticateWithRole(r)
+	return userID, orgID, ok
+}
+
+func (h *Handler) AuthenticateWithRole(r *http.Request) (string, string, string, bool) {
+	if h.pool == nil {
+		return "", "", "", false
+	}
+	cookie, err := r.Cookie(sessionCookieName)
+	if err != nil || cookie.Value == "" {
+		return "", "", "", false
+	}
+
+	requestedOrg := r.Header.Get("X-Organisation-ID")
+	tokenHash := hashToken(cookie.Value)
+
+	var userID, orgID, role string
+	var errQuery error
+	if requestedOrg != "" {
+		errQuery = h.pool.QueryRow(r.Context(), `
+			SELECT s.user_id::text, m.organisation_id::text, m.role
+			FROM sessions s
+			JOIN users u ON u.id = s.user_id
+			JOIN memberships m ON m.user_id = u.id
+			WHERE s.token_hash = $1 AND s.expires_at > now() AND u.status = 'active' AND m.organisation_id = $2::uuid
+			LIMIT 1
+		`, tokenHash, requestedOrg).Scan(&userID, &orgID, &role)
+	} else {
+		errQuery = h.pool.QueryRow(r.Context(), `
+			SELECT s.user_id::text, m.organisation_id::text, m.role
+			FROM sessions s
+			JOIN users u ON u.id = s.user_id
+			JOIN memberships m ON m.user_id = u.id
+			WHERE s.token_hash = $1 AND s.expires_at > now() AND u.status = 'active'
+			ORDER BY m.created_at ASC
+			LIMIT 1
+		`, tokenHash).Scan(&userID, &orgID, &role)
+	}
+
+	return userID, orgID, role, errQuery == nil
+}
+
+func (h *Handler) writeCookie(w http.ResponseWriter, r *http.Request, name, value string, duration time.Duration) {
 	secure := h.cfg.CookieSecure || r.TLS != nil
+	sameSite := http.SameSiteLaxMode
+	if secure {
+		sameSite = http.SameSiteNoneMode
+	}
+	maxAge := int(duration.Seconds())
+	expires := time.Now().Add(duration)
+	if duration < 0 {
+		maxAge = -1
+		expires = time.Unix(0, 0)
+	}
 	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
-		Value:    token,
+		Name:     name,
+		Value:    value,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(12 * time.Hour),
-		MaxAge:   12 * 60 * 60,
+		SameSite: sameSite,
+		MaxAge:   maxAge,
+		Expires:  expires,
 	})
 }
 
-func (h *Handler) clearSessionCookie(w http.ResponseWriter, r *http.Request) {
-	secure := h.cfg.CookieSecure || r.TLS != nil
-	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-	})
-}
-
-func (h *Handler) setOAuthStateCookie(w http.ResponseWriter, r *http.Request, state string) {
-	secure := h.cfg.CookieSecure || r.TLS != nil
-	http.SetCookie(w, &http.Cookie{
-		Name:     oauthStateCookieName,
-		Value:    state,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(10 * time.Minute),
-		MaxAge:   10 * 60,
-	})
-}
-
-func (h *Handler) clearOAuthStateCookie(w http.ResponseWriter, r *http.Request) {
-	secure := h.cfg.CookieSecure || r.TLS != nil
-	http.SetCookie(w, &http.Cookie{
-		Name:     oauthStateCookieName,
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-	})
+func resolveRedirect(rawTarget string, allowedOrigins []string) string {
+	if strings.HasPrefix(rawTarget, "/") && !strings.HasPrefix(rawTarget, "//") && !strings.HasPrefix(rawTarget, "/\\") {
+		return rawTarget
+	}
+	for _, origin := range allowedOrigins {
+		if rawTarget == origin || strings.HasPrefix(rawTarget, origin+"/") {
+			return rawTarget
+		}
+	}
+	if len(allowedOrigins) > 0 {
+		return allowedOrigins[0] + "/dashboard"
+	}
+	return "/"
 }
 
 func (h *Handler) oauthConfig(provider *oidc.Provider) oauth2.Config {

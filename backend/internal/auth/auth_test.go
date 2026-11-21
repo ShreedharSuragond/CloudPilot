@@ -10,45 +10,6 @@ import (
 	"github.com/your-org/cloudpilot/internal/config"
 )
 
-func TestDevLoginDisabledInProduction(t *testing.T) {
-	cfg := config.Config{
-		AppEnv:         "production",
-		DevAuthEnabled: true,
-	}
-	h := New(nil, cfg)
-
-	req := httptest.NewRequest("POST", "/dev-login", nil)
-	rec := httptest.NewRecorder()
-
-	h.Routes().ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusForbidden {
-		t.Fatalf("expected 403 Forbidden in production, got %d", rec.Code)
-	}
-
-	body, _ := io.ReadAll(rec.Body)
-	if !strings.Contains(string(body), "Development login is disabled") {
-		t.Fatalf("unexpected response body: %s", string(body))
-	}
-}
-
-func TestDevLoginRequiresDatabase(t *testing.T) {
-	cfg := config.Config{
-		AppEnv:         "development",
-		DevAuthEnabled: true,
-	}
-	h := New(nil, cfg)
-
-	req := httptest.NewRequest("POST", "/dev-login", nil)
-	rec := httptest.NewRecorder()
-
-	h.Routes().ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusServiceUnavailable {
-		t.Fatalf("expected 503 without database, got %d", rec.Code)
-	}
-}
-
 func TestCallbackRejectsMissingOrMismatchedStateCookie(t *testing.T) {
 	cfg := config.Config{
 		AppEnv:       "development",

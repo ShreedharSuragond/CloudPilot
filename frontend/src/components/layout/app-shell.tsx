@@ -9,11 +9,11 @@ interface AppShellProps {
 
 export function AppShell({ children, breadcrumbs }: AppShellProps) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col h-full overflow-hidden">
         <Header breadcrumbs={breadcrumbs} />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto min-w-0">
           {children}
         </main>
       </div>

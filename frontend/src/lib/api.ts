@@ -1,3 +1,5 @@
+import { useWorkspaceStore } from '@/stores/workspace.store'
+
 export class ApiError extends Error {
   readonly status: number
   readonly details?: unknown
@@ -10,15 +12,28 @@ export class ApiError extends Error {
   }
 }
 
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace(/\/+$/, '')
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept', 'application/json')
+
+  const activeOrgId = useWorkspaceStore.getState().activeOrganisationId
+  if (activeOrgId && !headers.has('X-Organisation-ID')) {
+    headers.set('X-Organisation-ID', activeOrgId)
+  }
 
   if (init.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
-  const response = await fetch(path, {
+  const url =
+    path.startsWith('http://') || path.startsWith('https://')
+      ? path
+      : `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
+
+  const response = await fetch(url, {
+    credentials: 'include',
     ...init,
     headers,
   })
