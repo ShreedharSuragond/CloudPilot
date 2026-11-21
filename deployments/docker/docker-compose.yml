@@ -17,8 +17,8 @@ services:
 
   api:
     build:
-      context: ../../backend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.backend
       args:
         APP: api
     environment:
@@ -45,8 +45,8 @@ services:
 
   worker:
     build:
-      context: ../../backend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.backend
       args:
         APP: worker
     environment:
@@ -61,8 +61,8 @@ services:
 
   frontend:
     build:
-      context: ../../frontend
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.frontend
       args:
         VITE_API_URL: ${VITE_API_URL}
     ports:

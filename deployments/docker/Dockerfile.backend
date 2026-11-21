@@ -1,11 +1,13 @@
+# Stage 1: Build the Go binary using secure Chainguard base image
 FROM cgr.dev/chainguard/go:latest AS build
 ARG APP=api
 WORKDIR /src
-COPY go.mod go.sum ./
-COPY . ./
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
+COPY backend/ ./
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/cloudpilot ./cmd/${APP}
 
+# Stage 2: Distroless scratch runtime
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /out/cloudpilot /usr/local/bin/cloudpilot

@@ -30,14 +30,14 @@ flowchart TD
 
 | Service | Image / Build | Port Mapping | Description |
 | :--- | :--- | :--- | :--- |
-| **`frontend`** | `caddy:2-alpine` (`../../frontend`) | `80:80` | Serves static React UI and acts as the reverse-proxy gateway for `/cloudpilot/*`. |
-| **`api`** | Go Alpine (`../../backend`) | Internal `8080` | Core modular monolith HTTP API. Shielded behind Caddy (not exposed to host). |
-| **`worker`** | Go Alpine (`../../backend`) | None (daemon) | Autonomous multi-cloud resource discovery and policy audit worker. |
+| **`frontend`** | `caddy:2-alpine` (`Dockerfile.frontend`) | `80:80` | Serves static React UI and acts as the reverse-proxy gateway for `/cloudpilot/*`. |
+| **`api`** | Go Scratch (`Dockerfile.backend`) | Internal `8080` | Core modular monolith HTTP API. Shielded behind Caddy (not exposed to host). |
+| **`worker`** | Go Scratch (`Dockerfile.backend`) | None (daemon) | Autonomous multi-cloud resource discovery and policy audit worker. |
 | **`postgres`** | `postgres:18-alpine` | `5432:5432` | Multi-tenant PostgreSQL database. |
 
 ---
 
-## 3. Caddy Reverse Proxy Architecture (`frontend/Caddyfile`)
+## 3. Caddy Reverse Proxy Architecture (`deployments/docker/Caddyfile`)
 
 Caddy operates on standard port `80` as the single public entrypoint:
 
