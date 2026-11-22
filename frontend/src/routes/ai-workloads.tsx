@@ -101,19 +101,18 @@ export function AIWorkloadsRoute() {
   }
 
   const compliancePercentage = summary
-    ? summary.totalAIWorkloads > 0
-      ? Math.round((summary.guardrailsCompliantCount / summary.totalAIWorkloads) * 100)
+    ? summary.totalAiWorkloads > 0
+      ? Math.round((summary.guardrailsCompliantCount / summary.totalAiWorkloads) * 100)
       : 100
     : 100
 
   return (
     <AuthGuard>
-      <AppShell>
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+      <AppShell breadcrumbs={[{ label: 'AI Workloads' }]}>
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl flex items-center gap-2.5">
                 <BrainCircuit className="size-6 text-purple-500" />
                 AI Workloads & Foundation Models
               </h1>
@@ -176,7 +175,7 @@ export function AIWorkloadsRoute() {
                 ) : (
                   <div>
                     <div className="text-2xl font-bold font-mono">
-                      {summary?.totalAIWorkloads ?? 0}
+                      {summary?.totalAiWorkloads ?? 0}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {summary?.activeEndpoints ?? 0} endpoints, {summary?.foundationModels ?? 0} models
@@ -202,7 +201,7 @@ export function AIWorkloadsRoute() {
                 ) : (
                   <div>
                     <div className="text-2xl font-bold font-mono text-foreground">
-                      ${(summary?.monthlyAISpend ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ${(summary?.monthlyAiSpend ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Inference tokens & hosting run-rate
@@ -515,7 +514,6 @@ export function AIWorkloadsRoute() {
               )}
             </CardContent>
           </Card>
-        </div>
 
         {/* Autonomous Remediation Blueprint Modal */}
         <RemediationCodeModal

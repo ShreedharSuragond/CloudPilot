@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/your-org/cloudpilot/internal/config"
 	"github.com/your-org/cloudpilot/internal/discovery"
+	"github.com/your-org/cloudpilot/internal/finops"
 	"github.com/your-org/cloudpilot/internal/migrations"
 	"github.com/your-org/cloudpilot/internal/policy"
 )
@@ -40,13 +41,19 @@ func main() {
 	}
 
 	policyEngine := policy.NewEngine(pool)
+	finopsEngine := finops.NewEngine(pool)
 	engine := discovery.NewEngine(pool)
 	engine.SetPolicyEvaluator(policyEngine.EvaluateAccount)
-	logger.Info("autonomous cloud discovery & compliance engines initialized", "scanners", []string{"aws", "gcp", "azure"})
+	logger.Info("autonomous cloud discovery, FinOps & compliance engines initialized", "scanners", []string{"aws", "gcp", "azure"})
 
 	// Immediate run on startup
 	if synced, err := engine.SyncAllPending(ctx); err == nil && synced > 0 {
 		logger.Info("initial discovery cycle completed", "syncedAccounts", synced)
+	}
+	if err := finopsEngine.RecordDailySnapshot(ctx); err != nil {
+		logger.Warn("initial FinOps cost snapshot encountered an error", "error", err)
+	} else {
+		logger.Info("initial FinOps daily cost snapshot recorded")
 	}
 
 	ticker := time.NewTicker(30 * time.Second)
@@ -65,6 +72,11 @@ func main() {
 				logger.Warn("discovery cycle encountered an error", "error", err)
 			} else if synced > 0 {
 				logger.Info("discovery cycle completed", "syncedAccounts", synced)
+			}
+
+			// Record and synchronize FinOps daily snapshots across accounts
+			if err := finopsEngine.RecordDailySnapshot(ctx); err != nil {
+				logger.Warn("daily FinOps cost snapshot error", "error", err)
 			}
 		}
 	}

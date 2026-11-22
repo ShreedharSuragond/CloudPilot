@@ -195,12 +195,11 @@ export function CostsRoute() {
 
   return (
     <AuthGuard>
-      <AppShell>
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+      <AppShell breadcrumbs={[{ label: 'Cost Management' }]}>
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl flex items-center gap-2.5">
                 <DollarSign className="size-6 text-emerald-500" />
                 Cost Management & FinOps
               </h1>
@@ -574,7 +573,6 @@ export function CostsRoute() {
               </Card>
             )}
           </div>
-        </div>
 
         {/* Create Budget Modal */}
         <CreateBudgetModal

@@ -99,8 +99,7 @@ export function SettingsRoute() {
   return (
     <AuthGuard>
       <AppShell breadcrumbs={[{ label: 'Settings' }]}>
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 space-y-6">
-          {/* Header */}
+        {/* Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -454,7 +453,6 @@ export function SettingsRoute() {
               </pre>
             </DialogContent>
           </Dialog>
-        </div>
       </AppShell>
     </AuthGuard>
   )

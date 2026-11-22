@@ -226,9 +226,6 @@ The frontend Vite dev server will start at `http://localhost:5173`.
 | :--- | :--- | :--- |
 | `APP_ENV` | Application environment (`development`, `production`) | `development` |
 | `HTTP_ADDR` | Go API server HTTP listening host & port | `:8080` |
-| `POSTGRES_DB` | PostgreSQL database name | `cloudpilot` |
-| `POSTGRES_USER` | PostgreSQL database user | `cloudpilot` |
-| `POSTGRES_PASSWORD` | PostgreSQL user password | `replace-with-a-local-development-password` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgres://cloudpilot:password@localhost:5432/cloudpilot?sslmode=disable` |
 | `VITE_API_URL` | Frontend API connectivity base URL | `http://localhost:8080/cloudpilot` |
 | `CORS_ALLOWED_ORIGINS` | Permitted cross-origin frontend origins | `http://localhost:5173,http://127.0.0.1:5173,https://app.cloudpilot.io` |

@@ -95,8 +95,7 @@ export function InventoryRoute() {
   return (
     <AuthGuard>
       <AppShell breadcrumbs={[{ label: 'Cloud Inventory' }]}>
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 space-y-6">
-          {/* Header */}
+        {/* Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -253,7 +252,6 @@ export function InventoryRoute() {
               </Table>
             </CardContent>
           </Card>
-        </div>
       </AppShell>
     </AuthGuard>
   )

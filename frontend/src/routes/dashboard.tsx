@@ -49,9 +49,8 @@ export function DashboardRoute() {
 
   return (
     <AuthGuard>
-      <AppShell breadcrumbs={[{ label: 'Dashboard' }]}>
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-8 space-y-8">
-          {/* Header Section */}
+      <AppShell breadcrumbs={[{ label: 'Overview' }]}>
+        {/* Header Section */}
           <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -330,7 +329,6 @@ export function DashboardRoute() {
             </span>
             <span>v0.2.0 • Multi-Cloud Active</span>
           </footer>
-        </div>
       </AppShell>
     </AuthGuard>
   )

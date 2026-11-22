@@ -4,62 +4,80 @@ set: [pipefail]
 
 vars:
   COMPOSE_FILE: deployments/docker/docker-compose.yml
-  ENV_FILE: .env
+  DOCKER_ENV_FILE: deployments/docker/.env
+  LOCAL_ENV_FILE: .env
 
-  # Windows Git Bash: Docker Desktop and Go tools must be available on PATH.
+  # Windows Git Bash / PowerShell: Docker Desktop and Go tools must be available on PATH.
 
 tasks:
   setup:
-    desc: Create local environment file and prepare required directories
+    desc: Prepare environment files for both local development and Docker deployment
+    cmds:
+      - task: setup:local
+      - task: setup:docker
+
+  setup:local:
+    desc: Create local development environment file (.env) from template
     cmds:
       - |
-        if [ ! -f "{{.ENV_FILE}}" ]; then
-          cp .env.example "{{.ENV_FILE}}"
-          echo "Created {{.ENV_FILE}}. Update POSTGRES_PASSWORD before starting Docker."
+        if [ ! -f "{{.LOCAL_ENV_FILE}}" ]; then
+          cp .env.example "{{.LOCAL_ENV_FILE}}"
+          echo "Created {{.LOCAL_ENV_FILE}} for local development."
         else
-          echo "{{.ENV_FILE}} already exists"
+          echo "{{.LOCAL_ENV_FILE}} already exists"
+        fi
+
+  setup:docker:
+    desc: Create Docker deployment environment file (deployments/docker/.env) from template
+    cmds:
+      - |
+        if [ ! -f "{{.DOCKER_ENV_FILE}}" ]; then
+          cp deployments/docker/.env.example "{{.DOCKER_ENV_FILE}}"
+          echo "Created {{.DOCKER_ENV_FILE}}. Update OIDC and Postgres secrets for containerized execution."
+        else
+          echo "{{.DOCKER_ENV_FILE}} already exists"
         fi
 
   docker:up:
-    desc: Build and start the complete local stack
-    deps: [setup]
+    desc: Build and start the complete containerized stack (http://localhost)
+    deps: [setup:docker]
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up --build -d
 
   docker:down:
-    desc: Stop the complete local stack
+    desc: Stop the complete containerized stack
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" down
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" down
 
   docker:reset:
-    desc: Stop containers and remove the PostgreSQL volume
+    desc: Stop containers and remove persistent volumes (PostgreSQL data)
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" down -v
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" down -v
 
   docker:ps:
     desc: Show running CloudPilot containers
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" ps
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" ps
 
   docker:logs:
-    desc: Follow logs for all or one service
+    desc: Follow logs for all or one container service
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" logs -f {{.CLI_ARGS}}
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" logs -f {{.CLI_ARGS}}
 
   docker:api:
-    desc: Rebuild and restart only the API service
+    desc: Rebuild and restart only the API service container
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d api
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up --build -d api
 
   docker:frontend:
-    desc: Rebuild and restart only the frontend service
+    desc: Rebuild and restart only the frontend service container
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d frontend
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up --build -d frontend
 
   docker:worker:
-    desc: Rebuild and restart only the worker service
+    desc: Rebuild and restart only the worker service container
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d worker
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up --build -d worker
 
   frontend:install:
     desc: Install frontend dependencies
@@ -68,7 +86,7 @@ tasks:
       - npm ci
 
   frontend:dev:
-    desc: Run the Vite development server
+    desc: Run the Vite development server (http://localhost:5173)
     dir: frontend
     cmds:
       - npm run dev
@@ -86,7 +104,7 @@ tasks:
       - npm run lint
 
   frontend:build:
-    desc: Build the frontend
+    desc: Build the frontend for production
     dir: frontend
     cmds:
       - npm run build
@@ -101,13 +119,15 @@ tasks:
       - go vet ./...
 
   backend:run:
-    desc: Run the API outside Docker
+    desc: Run the API outside Docker (http://localhost:8080/cloudpilot)
+    deps: [setup:local]
     dir: backend
     cmds:
       - go run ./cmd/api
 
   worker:run:
-    desc: Run the worker outside Docker
+    desc: Run the discovery worker outside Docker
+    deps: [setup:local]
     dir: backend
     cmds:
       - go run ./cmd/worker
@@ -115,13 +135,13 @@ tasks:
   migrate:
     desc: Start PostgreSQL and apply embedded migrations during API startup
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up -d postgres
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" up --build -d api
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up -d postgres
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" up --build -d api
 
   compose:config:
     desc: Validate Docker Compose configuration
     cmds:
-      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.ENV_FILE}}" config --quiet
+      - docker compose -f "{{.COMPOSE_FILE}}" --env-file "{{.DOCKER_ENV_FILE}}" config --quiet
 
   check:
     desc: Run focused project validation

@@ -311,3 +311,31 @@ func (e *Engine) DeleteBudget(ctx context.Context, orgID, budgetID string) error
 	`, budgetID, orgID)
 	return err
 }
+
+// RecordDailySnapshot calculates and records daily infrastructure, AI, and total spend for all accounts.
+func (e *Engine) RecordDailySnapshot(ctx context.Context) error {
+	if e.pool == nil {
+		return fmt.Errorf("database pool not configured")
+	}
+
+	today := time.Now().UTC().Format("2006-01-02")
+	_, err := e.pool.Exec(ctx, `
+		INSERT INTO cost_daily_snapshots (organisation_id, cloud_account_id, date, provider, infra_spend, ai_spend, total_spend)
+		SELECT 
+			organisation_id,
+			cloud_account_id,
+			$1::date,
+			provider,
+			COALESCE(ROUND(SUM(monthly_cost) FILTER (WHERE resource_type NOT IN ('ai_model', 'ai_endpoint')) / 30.0, 2), 0.00),
+			COALESCE(ROUND(SUM(monthly_cost) FILTER (WHERE resource_type IN ('ai_model', 'ai_endpoint')) / 30.0, 2), 0.00),
+			COALESCE(ROUND(SUM(monthly_cost) / 30.0, 2), 0.00)
+		FROM cloud_resources
+		GROUP BY organisation_id, cloud_account_id, provider
+		ON CONFLICT (organisation_id, cloud_account_id, date, provider)
+		DO UPDATE SET
+			infra_spend = EXCLUDED.infra_spend,
+			ai_spend = EXCLUDED.ai_spend,
+			total_spend = EXCLUDED.total_spend
+	`, today)
+	return err
+}

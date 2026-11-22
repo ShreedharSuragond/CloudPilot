@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/your-org/cloudpilot/internal/integrations"
 )
 
 type Engine struct {
@@ -80,7 +81,8 @@ func (e *Engine) EvaluateAccount(ctx context.Context, accountID, orgID string) (
 				desc = fmt.Sprintf("%s (%s)", desc, reason)
 			}
 
-			_, err := e.pool.Exec(ctx, `
+			var isNew bool
+			err := e.pool.QueryRow(ctx, `
 				INSERT INTO policy_findings (
 					organisation_id, cloud_resource_id, severity, rule_name,
 					framework, description, remediation_guidance, status, detected_at
@@ -93,9 +95,17 @@ func (e *Engine) EvaluateAccount(ctx context.Context, accountID, orgID string) (
 					severity = EXCLUDED.severity,
 					framework = EXCLUDED.framework,
 					detected_at = now()
-			`, orgID, target.ID, rule.Severity, rule.Name, rule.Framework, desc, rule.RemediationGuidance)
+				RETURNING (xmax = 0)
+			`, orgID, target.ID, rule.Severity, rule.Name, rule.Framework, desc, rule.RemediationGuidance).Scan(&isNew)
 			if err != nil {
 				slog.Warn("failed to upsert policy finding", "rule", rule.Name, "resourceId", target.ID, "error", err)
+			} else if isNew && (rule.Severity == "critical" || rule.Severity == "high") {
+				integrations.Dispatch(ctx, e.pool, orgID, fmt.Sprintf("policy.%s", rule.Severity), desc, map[string]any{
+					"ruleName":     rule.Name,
+					"severity":     rule.Severity,
+					"resourceName": target.Name,
+					"resourceType": target.ResourceType,
+				})
 			}
 		}
 	}
